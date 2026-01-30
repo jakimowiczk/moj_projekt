@@ -189,13 +189,22 @@
         <p class="subtitle">Dodaj numer do dokumentu</p>
 
         <div class="info-box">
-            ℹ️ Wpisz inicjały: JK - Krzysiek, MM - Maciek, CR - Radek. Wybierz PDF, a aplikacja doda numer w prawym górnym rogu dokumentu.
+            ℹ️ Użyj swojego unikalnego linku z numerem ID, wybierz PDF, a aplikacja doda numer w prawym górnym rogu dokumentu.
         </div>
 
+        <div class="form-group">
+            <label>Twój numer ID:</label>
+            <div style="padding: 12px; background: #e8f5e9; border-radius: 10px; font-size: 18px; font-weight: bold; color: #2e7d32; text-align: center;" id="userNumberDisplay">
+                Ładowanie...
+            </div>
+        </div>
+
+        <!-- ZAKOMENTOWANE - Pole inicjałów (backup na przyszłość)
         <div class="form-group">
             <label for="initials">Twoje inicjały:</label>
             <input type="text" id="initials" placeholder="np. JK" maxlength="3">
         </div>
+        -->
 
         <div class="form-group">
             <label>Wybierz plik PDF:</label>
@@ -220,7 +229,7 @@
         const userMap = {
             'JK': '3013172',
             'MM': '3013173',
-            'CR': '3013174'
+            'CR': '3013079'
         };
 
         const initialsInput = document.getElementById('initials');
@@ -228,8 +237,38 @@
         const fileLabel = document.getElementById('fileLabel');
         const processBtn = document.getElementById('processBtn');
         const statusDiv = document.getElementById('status');
+        const userNumberDisplay = document.getElementById('userNumberDisplay');
 
         let selectedFile = null;
+        let currentUserNumber = null;
+
+        // Odczytaj numer z URL (parametr ?id=3013172)
+        function getUserNumberFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            return id;
+        }
+
+        // Inicjalizacja - sprawdź URL i ustaw numer użytkownika
+        function initializeUser() {
+            const urlNumber = getUserNumberFromURL();
+            
+            if (urlNumber) {
+                currentUserNumber = urlNumber;
+                userNumberDisplay.textContent = `✓ ${currentUserNumber}`;
+                userNumberDisplay.style.background = '#e8f5e9';
+                userNumberDisplay.style.color = '#2e7d32';
+            } else {
+                userNumberDisplay.textContent = '❌ Brak numeru w linku!';
+                userNumberDisplay.style.background = '#ffebee';
+                userNumberDisplay.style.color = '#c62828';
+            }
+            
+            checkFormValid();
+        }
+
+        // Uruchom przy starcie
+        initializeUser();
 
         // Obsługa wyboru pliku
         pdfFileInput.addEventListener('change', (e) => {
@@ -241,19 +280,18 @@
             }
         });
 
-        // Obsługa wpisywania inicjałów
-        initialsInput.addEventListener('input', (e) => {
-            e.target.value = e.target.value.toUpperCase();
-            checkFormValid();
-        });
+        // Obsługa wpisywania inicjałów (zakomentowane, ale zostaw funkcjonalność)
+        // initialsInput.addEventListener('input', (e) => {
+        //     e.target.value = e.target.value.toUpperCase();
+        //     checkFormValid();
+        // });
 
         // Sprawdź czy formularz jest wypełniony
         function checkFormValid() {
-            const initials = initialsInput.value.trim();
             const hasFile = selectedFile !== null;
-            const hasValidInitials = userMap[initials] !== undefined;
+            const hasValidNumber = currentUserNumber !== null && currentUserNumber !== '';
 
-            processBtn.disabled = !(hasFile && hasValidInitials);
+            processBtn.disabled = !(hasFile && hasValidNumber);
         }
 
         // Wyświetl status
@@ -264,11 +302,10 @@
 
         // Przetwarzanie PDF
         processBtn.addEventListener('click', async () => {
-            const initials = initialsInput.value.trim().toUpperCase();
-            const userNumber = userMap[initials];
+            const userNumber = currentUserNumber;
 
             if (!userNumber) {
-                showStatus('❌ Nieprawidłowe inicjały!', 'error');
+                showStatus('❌ Brak numeru użytkownika! Użyj specjalnego linku.', 'error');
                 return;
             }
 
@@ -291,14 +328,14 @@
                 const { width, height } = firstPage.getSize();
 
                 // Dodaj numer w prawym górnym rogu
-                const fontSize = 18;
+                const fontSize = 24;
                 const text = userNumber;
                 
                 firstPage.drawText(text, {
                     x: width - 120, // Prawy górny róg
-                    y: height - 30,
+                    y: height - 40,
                     size: fontSize,
-                    color: PDFLib.rgb(0, 0, 0),
+                    color: PDFLib.rgb(1, 0, 0), // Czerwony kolor
                 });
 
                 // Zapisz zmodyfikowany PDF
@@ -316,7 +353,7 @@
                 
                 // Reset formularza po 3 sekundach
                 setTimeout(() => {
-                    initialsInput.value = '';
+                    // initialsInput.value = ''; // Zakomentowane - pole inicjałów ukryte
                     pdfFileInput.value = '';
                     selectedFile = null;
                     fileLabel.textContent = '📎 Kliknij aby wybrać plik';
