@@ -3,35 +3,341 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moja Pierwsza Strona</title>
+    <meta name="theme-color" content="#667eea">
+    <title>Przetwarzanie PDF</title>
+    <link rel="manifest" href="manifest.json">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            text-transform: uppercase;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 12px 16px;
+            background: #f5f5f5;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #666;
+        }
+
+        .file-input-label:hover {
+            background: #efefef;
+            border-color: #667eea;
+        }
+
+        .file-input-label.has-file {
+            background: #e8f5e9;
+            border-color: #4caf50;
+            color: #2e7d32;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
         }
-        .container {
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 10px;
             text-align: center;
-            padding: 40px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
+            font-size: 14px;
+            display: none;
         }
-        h1 { font-size: 3em; margin: 0; }
-        p { font-size: 1.5em; margin-top: 20px; }
-        .emoji { font-size: 5em; }
+
+        .status.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            display: block;
+        }
+
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+            display: block;
+        }
+
+        .status.processing {
+            background: #fff3e0;
+            color: #e65100;
+            display: block;
+        }
+
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 12px;
+            margin-bottom: 25px;
+            border-radius: 5px;
+            font-size: 13px;
+            color: #444;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="emoji">🚀</div>
-        <h1>Działa!</h1>
-        <p>Moja pierwsza strona jest online</p>
+        <h1>📄 Przetwarzanie PDF</h1>
+        <p class="subtitle">Dodaj numer do dokumentu</p>
+
+        <div class="info-box">
+            ℹ️ Wpisz inicjały, wybierz PDF, a aplikacja doda numer w prawym górnym rogu dokumentu.
+        </div>
+
+        <div class="form-group">
+            <label for="initials">Twoje inicjały:</label>
+            <input type="text" id="initials" placeholder="np. JK" maxlength="3">
+        </div>
+
+        <div class="form-group">
+            <label>Wybierz plik PDF:</label>
+            <div class="file-input-wrapper">
+                <input type="file" id="pdfFile" accept=".pdf">
+                <label for="pdfFile" class="file-input-label" id="fileLabel">
+                    📎 Kliknij aby wybrać plik
+                </label>
+            </div>
+        </div>
+
+        <button class="btn" id="processBtn" disabled>Przetwórz dokument</button>
+
+        <div class="status" id="status"></div>
     </div>
+
+    <!-- Biblioteka pdf-lib do edycji PDF -->
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    
+    <script>
+        // Mapa użytkowników: inicjały -> numer
+        const userMap = {
+            'JK': '3013172',
+            'MM': '3013173',
+            'CR': '3013174'
+        };
+
+        const initialsInput = document.getElementById('initials');
+        const pdfFileInput = document.getElementById('pdfFile');
+        const fileLabel = document.getElementById('fileLabel');
+        const processBtn = document.getElementById('processBtn');
+        const statusDiv = document.getElementById('status');
+
+        let selectedFile = null;
+
+        // Obsługa wyboru pliku
+        pdfFileInput.addEventListener('change', (e) => {
+            selectedFile = e.target.files[0];
+            if (selectedFile) {
+                fileLabel.textContent = `✓ ${selectedFile.name}`;
+                fileLabel.classList.add('has-file');
+                checkFormValid();
+            }
+        });
+
+        // Obsługa wpisywania inicjałów
+        initialsInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.toUpperCase();
+            checkFormValid();
+        });
+
+        // Sprawdź czy formularz jest wypełniony
+        function checkFormValid() {
+            const initials = initialsInput.value.trim();
+            const hasFile = selectedFile !== null;
+            const hasValidInitials = userMap[initials] !== undefined;
+
+            processBtn.disabled = !(hasFile && hasValidInitials);
+        }
+
+        // Wyświetl status
+        function showStatus(message, type) {
+            statusDiv.textContent = message;
+            statusDiv.className = 'status ' + type;
+        }
+
+        // Przetwarzanie PDF
+        processBtn.addEventListener('click', async () => {
+            const initials = initialsInput.value.trim().toUpperCase();
+            const userNumber = userMap[initials];
+
+            if (!userNumber) {
+                showStatus('❌ Nieprawidłowe inicjały!', 'error');
+                return;
+            }
+
+            if (!selectedFile) {
+                showStatus('❌ Wybierz plik PDF!', 'error');
+                return;
+            }
+
+            try {
+                showStatus('⏳ Przetwarzam dokument...', 'processing');
+                processBtn.disabled = true;
+
+                // Wczytaj plik PDF
+                const arrayBuffer = await selectedFile.arrayBuffer();
+                const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+
+                // Pobierz pierwszą stronę
+                const pages = pdfDoc.getPages();
+                const firstPage = pages[0];
+                const { width, height } = firstPage.getSize();
+
+                // Dodaj numer w prawym górnym rogu
+                const fontSize = 18;
+                const text = userNumber;
+                
+                firstPage.drawText(text, {
+                    x: width - 120, // Prawy górny róg
+                    y: height - 30,
+                    size: fontSize,
+                    color: PDFLib.rgb(0, 0, 0),
+                });
+
+                // Zapisz zmodyfikowany PDF
+                const pdfBytes = await pdfDoc.save();
+
+                // Pobierz plik
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `dokument_${userNumber}.pdf`;
+                a.click();
+
+                showStatus('✓ Dokument został pobrany!', 'success');
+                
+                // Reset formularza po 3 sekundach
+                setTimeout(() => {
+                    initialsInput.value = '';
+                    pdfFileInput.value = '';
+                    selectedFile = null;
+                    fileLabel.textContent = '📎 Kliknij aby wybrać plik';
+                    fileLabel.classList.remove('has-file');
+                    statusDiv.className = 'status';
+                    processBtn.disabled = true;
+                }, 3000);
+
+            } catch (error) {
+                console.error('Błąd:', error);
+                showStatus('❌ Błąd podczas przetwarzania pliku!', 'error');
+                processBtn.disabled = false;
+            }
+        });
+
+        // Rejestracja Service Worker dla PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(() => console.log('Service Worker zarejestrowany'))
+                .catch(err => console.log('Service Worker błąd:', err));
+        }
+    </script>
 </body>
 </html>
